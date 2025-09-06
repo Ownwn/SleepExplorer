@@ -2,10 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class CsvParser {
@@ -34,7 +31,7 @@ public class CsvParser {
         throw new RuntimeException("Cannot find any CSV files in " + parentPath.toAbsolutePath());
     }
 
-    public Map<String, List<String>> readCsv() {
+    public LinkedHashMap<String, List<String>> readCsv() {
         List<String> lines;
         try {
             lines = Files.readAllLines(csvFile.toPath());
@@ -46,7 +43,7 @@ public class CsvParser {
         String[] headers = lines.removeFirst().split(Pattern.quote(separator));
 
 
-        Map<String, List<String>> columns = new HashMap<>();
+        LinkedHashMap<String, List<String>> columns = new LinkedHashMap<>();
 
         for (String line : lines) {
             String[] points = cleanBogusCommas(line).split(",");
