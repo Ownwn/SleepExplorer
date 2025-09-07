@@ -31,29 +31,68 @@ public class CsvParser {
         throw new RuntimeException("Cannot find any CSV files in " + parentPath.toAbsolutePath());
     }
 
-    public LinkedHashMap<String, List<String>> readCsv() {
-        List<String> lines;
+    private List<String> headers = null;
+    private List<String> lines = null;
+
+    private List<String> headers() {
+        assert (lines == null) == (headers == null); // yes this is on purpose
+
+        if (headers != null) {
+            return headers;
+        }
+        lines();
+        assert headers != null;
+        return headers;
+    }
+
+    private List<String> lines() {
+        if (lines != null) {
+            return lines;
+        }
+
         try {
-            lines = Files.readAllLines(csvFile.toPath());
+            lines = new ArrayList<>(Files.readAllLines(csvFile.toPath()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         assert lines.size() >= 2;
 
-        String[] headers = lines.removeFirst().split(Pattern.quote(separator));
+        headers = Arrays.asList(lines.removeFirst().split(Pattern.quote(separator)));
+        return lines;
+    }
 
-
+    public LinkedHashMap<String, List<String>> readCsvColumns() {
         LinkedHashMap<String, List<String>> columns = new LinkedHashMap<>();
 
-        for (String line : lines) {
+        for (String line : lines()) {
             String[] points = cleanBogusCommas(line).split(",");
             for (int i = 0; i < points.length; i++) {
                 String point = points[i]; // point represents 1 datapoint e.g. the BPM for a specific night
-                columns.computeIfAbsent(headers[i], _ -> new ArrayList<>()).add(point);
+                columns.computeIfAbsent(headers().get(i), _ -> new ArrayList<>()).add(point);
             }
         }
         return columns;
 
+    }
+
+    public List<Map<String, String>> readCsvRows() {
+        List<Map<String, String>> rows = new ArrayList<>();
+
+        for (String line : lines()) {
+            String[] points = cleanBogusCommas(line).split(",");
+
+            Map<String, String> row = new LinkedHashMap<>();
+            for (int i = 0; i < headers().size(); i++) {
+                if (i >= points.length) {
+                    row.put(headers().get(i), null);
+                } else {
+                    row.put(headers().get(i), points[i]);
+                }
+
+            }
+            rows.add(row);
+        }
+        return rows;
     }
 
     // remove nasty commas inside strings
