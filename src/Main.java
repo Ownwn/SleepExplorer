@@ -1,6 +1,5 @@
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Main {
     public static final Path csvPath = Path.of("");
@@ -11,8 +10,8 @@ public class Main {
         parser.searchForCsv();
 
         List<Day> days = parseDays(parser.readCsvRows());
-        System.out.println(days.stream().map(Day::toString).collect(Collectors.joining("\n")));
 
+        App.createVisualisation(days);
     }
 
     public static List<Day> parseDays(List<Map<String, String>> rows) {
@@ -69,6 +68,11 @@ public class Main {
         @Override
         public String toString() {
             return "Evening of " + isoTimes.get(Data.FROMDATE) + ", efficiency: " + numericalValues.get(Data.EFFICIENCY);
+        }
+
+        public double getEfficiency() {
+            double d = Double.parseDouble(numericalValues.get(Data.EFFICIENCY));
+            return Math.clamp(d, 0, 100);
         }
     }
 }
